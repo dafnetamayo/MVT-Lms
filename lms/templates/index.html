@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto p-6">
+    <h2 class="text-2xl font-semibold mb-4">Cursos</h2>
+    {% if courses and courses|length > 0 %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for course in courses %}
+        {% include "partials/course_card.html" with course=course %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No hay cursos disponibles.</p>
+    {% endif %}
+</div>
+<script>
+    fetch("{% url 'list_courses_ajax' %}", {
+        method: "GET",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.courses);
+            // Aquí actualizar la tabla en el DOM con los cursos
+        })
+        .catch(error => console.error('Error:', error));
+</script>
+{% endblock %}

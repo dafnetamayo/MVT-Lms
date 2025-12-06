@@ -1,0 +1,28 @@
+<nav class="bg-gray-800 text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">MiLMS</h1>
+    <div>
+        {% if user.is_authenticated %}
+        <div class="flex items-center gap-3">
+            <a href="{% url 'home' %}" class="hover:text-gray-300">Inicio</a>
+            <a href="{% url 'my_courses' %}" class="hover:text-gray-300">Mis Cursos</a>
+            <a href="{% url 'wishlist' %}" class="hover:text-gray-300">Lista de Deseos</a>
+            <a href="{% url 'perfil' %}" class="hover:text-gray-300">Perfil</a>
+            <div class="flex items-center gap-2">
+                {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="avatar" class="w-8 h-8 rounded-full object-cover" />
+                {% else %}
+                <div class="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-sm font-semibold">
+                    {{user.username|slice:":1"|upper }}</div>
+                {% endif %}
+                <span>{{ user.username }}</span>
+            </div>
+            <a href="{% url 'logout' %}" class="bg-red-600 px-3 py-1 rounded text-white">Cerrar sesión</a>
+        </div>
+        {% else %}
+        <div class="flex items-center gap-3">
+            <a href="{% url 'home' %}" class="hover:text-gray-300">Inicio</a>
+            <button class="bg-blue-500 px-4 py-2 rounded" onclick="openModal()">Iniciar Sesión</button>
+        </div>
+        {% endif %}
+    </div>
+</nav>

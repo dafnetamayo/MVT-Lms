@@ -1,0 +1,70 @@
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Set work directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+# Copy project
+COPY . /app/
+
+# Run tests before building - if tests fail, build fails
+# Use pytest for testing (configured in pytest.ini)
+# Set environment for testing (use SQLite in-memory for tests during build)
+ENV DJANGO_SETTINGS_MODULE=project.settings
+ENV TEST_DATABASE_ENGINE=django.db.backends.sqlite3
+ENV TEST_DATABASE_NAME=:memory:
+RUN pytest --tb=short -v || (echo "Tests failed! Build aborted." && exit 1)
+
+# Note: collectstatic will run at startup when volume is mounted
+# We don't run it here because the volume might not be available during build
+
+# Expose port (Railway uses dynamic ports, but we expose a default)
+EXPOSE 8000
+
+# Create startup script
+# This script runs migrations, collects static files, and starts gunicorn
+RUN echo '#!/bin/bash\n\
+    set -e\n\
+    echo "Starting deployment process..."\n\
+    \n\
+    # Create directories if they do not exist\n\
+    if [ -n "$VOLUME_PATH" ]; then\n\
+    echo "Using Railway volume at $VOLUME_PATH"\n\
+    mkdir -p "$VOLUME_PATH/static" "$VOLUME_PATH/media"\n\
+    else\n\
+    echo "Using local directories"\n\
+    mkdir -p /app/staticfiles /app/media\n\
+    fi\n\
+    \n\
+    # Make migrations\n\
+    echo "Creating migrations..."\n\
+    python manage.py makemigrations --noinput || echo "No new migrations to create"\n\
+    \n\
+    # Run migrations\n\
+    echo "Running migrations..."\n\
+    python manage.py migrate --noinput\n\
+    \n\
+    # Collect static files\n\
+    echo "Collecting static files..."\n\
+    python manage.py collectstatic --noinput\n\
+    \n\
+    # Start gunicorn\n\
+    echo "Starting Gunicorn server..."\n\
+    exec gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 3 project.wsgi:application' > /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Run startup script
+CMD ["/app/start.sh"]
+

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Lista de Deseos{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Mi Lista de Deseos</h1>
+        <p class="text-gray-600">Cursos que has guardado para más tarde</p>
+    </div>
+
+    {% if wishlist_items %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for item in wishlist_items %}
+        <div class="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col h-full">
+            {% if item.course.thumbnail %}
+            <a href="{% url 'course_detail' item.course.id %}">
+                <img src="{{ item.course.thumbnail.url }}" 
+                     alt="{{ item.course.title }}" 
+                     class="w-full h-48 object-cover">
+            </a>
+            {% else %}
+            <a href="{% url 'course_detail' item.course.id %}">
+                <div class="w-full h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                    <span class="text-white text-4xl font-bold">
+                        {{ item.course.title|first|upper }}
+                    </span>
+                </div>
+            </a>
+            {% endif %}
+            
+            <div class="p-4 flex flex-col flex-grow">
+                {% if item.course.category %}
+                <span class="inline-block text-xs font-semibold text-blue-600 mb-2">
+                    {{ item.course.category.name }}
+                </span>
+                {% endif %}
+                
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                    <a href="{% url 'course_detail' item.course.id %}" 
+                       class="hover:text-blue-600">
+                        {{ item.course.title }}
+                    </a>
+                </h3>
+                
+                <p class="text-sm text-gray-600 mb-4 flex-grow line-clamp-2">
+                    {{ item.course.short_description|default:item.course.description|truncatewords:15 }}
+                </p>
+                
+                <div class="flex items-center justify-between mb-4">
+                    <div class="text-lg font-bold text-gray-900">
+                        {% if item.course.price and item.course.price > 0 %}
+                            ${{ item.course.price }}
+                        {% else %}
+                            <span class="text-green-600">Gratis</span>
+                        {% endif %}
+                    </div>
+                    <span class="text-xs text-gray-500">
+                        Guardado {{ item.added_at|date:"d M Y" }}
+                    </span>
+                </div>
+                
+                <div class="flex gap-2 mt-auto">
+                    <a href="{% url 'course_detail' item.course.id %}" 
+                       class="flex-1 text-center px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                        Ver detalles
+                    </a>
+                    <a href="{% url 'toggle_wishlist' item.course.id %}" 
+                       class="px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-md hover:bg-red-50 transition-colors">
+                        ❤️
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow-md p-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Tu lista de deseos está vacía</h3>
+        <p class="mt-1 text-sm text-gray-500">Agrega cursos que te interesen para verlos más tarde.</p>
+        <div class="mt-6">
+            <a href="{% url 'home' %}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                Explorar Cursos
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

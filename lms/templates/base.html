@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>{% block title %}LMS{% endblock %}</title>
+</head>
+
+<body>
+    <main>
+        {% include "partials/navbar.html" %}
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Login modal (hidden by default) -->
+    <div id="loginModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded p-6 w-full max-w-md">
+            <button class="float-right text-gray-600" onclick="closeModal()">×</button>
+            {% include 'usuarios/login.html' %}
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            // Open the modal only if there are error messages
+            var msgs = document.getElementById('loginMessages');
+            if (msgs) {
+                var hasError = msgs.querySelector('.text-red-600');
+                if (hasError) {
+                    openModal();
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

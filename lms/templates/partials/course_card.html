@@ -1,0 +1,85 @@
+<div class="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col h-full">
+    {% if course.thumbnail and course.thumbnail.url %}
+    <div class="relative w-full h-48 overflow-hidden bg-gray-200 flex items-center justify-center" id="thumbnail-{{ course.id }}">
+        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" 
+             class="max-w-full max-h-full w-auto h-auto object-contain" 
+             style="max-width: 100%; max-height: 192px;"
+             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center\'><span class=\'text-white text-4xl font-bold\'>{{ course.title|first|upper }}</span></div>'" />
+    </div>
+    {% else %}
+    <div class="w-full h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+        <span class="text-white text-4xl font-bold">{{ course.title|first|upper }}</span>
+    </div>
+    {% endif %}
+    
+    <div class="p-4 flex flex-col flex-grow">
+        <div class="flex flex-wrap items-center gap-2 mb-2">
+            {% if course.category %}
+            <span class="inline-block text-xs font-semibold text-blue-600">
+                {{ course.category.name }}
+            </span>
+            {% endif %}
+            {% if course.tags.all %}
+            <div class="flex flex-wrap gap-1">
+                {% for tag in course.tags.all|slice:":3" %}
+                <span class="inline-block text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
+                    #{{ tag.name }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <h3 class="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+            {{ course.title }}
+        </h3>
+        
+        <p class="text-sm text-gray-600 mb-4 flex-grow line-clamp-2">
+            {{ course.short_description|default:course.description|truncatewords:15 }}
+        </p>
+        
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                {% if course.difficulty %}
+                <span class="px-2 py-1 text-xs font-medium rounded-full 
+                    {% if course.difficulty == 'beginner' %}bg-green-100 text-green-700
+                    {% elif course.difficulty == 'intermediate' %}bg-yellow-100 text-yellow-700
+                    {% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ course.get_difficulty_display }}
+                </span>
+                {% endif %}
+                {% if course.duration_hours %}
+                <span class="text-xs text-gray-500">
+                    <svg class="inline w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {{ course.duration_hours }}h
+                </span>
+                {% endif %}
+            </div>
+            
+            <span class="text-lg font-bold text-gray-900">
+                {% if course.price and course.price > 0 %}
+                    ${{ course.price }}
+                {% else %}
+                    <span class="text-green-600">Gratis</span>
+                {% endif %}
+            </span>
+        </div>
+        
+        <div class="flex gap-2 mt-auto">
+            <a href="{% url 'course_detail' course.id %}" class="flex-1 text-center px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+                Ver detalles
+            </a>
+            {% if user.is_authenticated %}
+            <form method="post" action="{% url 'enroll_course' course.id %}" class="flex-1">
+                {% csrf_token %}
+                <button type="submit" class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors">
+                    Inscribirme
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+

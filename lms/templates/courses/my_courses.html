@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Cursos{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Mis Cursos</h1>
+        <p class="text-gray-600">Aquí puedes ver todos los cursos en los que estás inscrito</p>
+    </div>
+
+    {% if enrollments %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for enrollment in enrollments %}
+        <div class="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col h-full">
+            {% if enrollment.course.thumbnail %}
+            <a href="{% url 'course_detail' enrollment.course.id %}">
+                <img src="{{ enrollment.course.thumbnail.url }}" 
+                     alt="{{ enrollment.course.title }}" 
+                     class="w-full h-48 object-cover">
+            </a>
+            {% else %}
+            <a href="{% url 'course_detail' enrollment.course.id %}">
+                <div class="w-full h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                    <span class="text-white text-4xl font-bold">
+                        {{ enrollment.course.title|first|upper }}
+                    </span>
+                </div>
+            </a>
+            {% endif %}
+            
+            <div class="p-4 flex flex-col flex-grow">
+                {% if enrollment.course.category %}
+                <span class="inline-block text-xs font-semibold text-blue-600 mb-2">
+                    {{ enrollment.course.category.name }}
+                </span>
+                {% endif %}
+                
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                    <a href="{% url 'course_detail' enrollment.course.id %}" 
+                       class="hover:text-blue-600">
+                        {{ enrollment.course.title }}
+                    </a>
+                </h3>
+                
+                <p class="text-sm text-gray-600 mb-4 flex-grow line-clamp-2">
+                    {{ enrollment.course.short_description|default:enrollment.course.description|truncatewords:15 }}
+                </p>
+                
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">Progreso</span>
+                        <span class="text-sm text-gray-600">{{ enrollment.progress_percentage }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                             style="width: {{ enrollment.progress_percentage }}%"></div>
+                    </div>
+                </div>
+                
+                <!-- Enrollment Info -->
+                <div class="space-y-2 mb-4 text-sm text-gray-600">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        <span>Instructor: {{ enrollment.course.instructor.get_full_name|default:enrollment.course.instructor.username }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Inscrito: {{ enrollment.enrolled_at|date:"d M Y" }}</span>
+                    </div>
+                    {% if enrollment.last_accessed %}
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Último acceso: {{ enrollment.last_accessed|date:"d M Y" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Status Badge -->
+                <div class="mb-4">
+                    <span class="inline-block px-3 py-1 text-xs font-medium rounded-full
+                        {% if enrollment.status == 'active' %}bg-green-100 text-green-700
+                        {% elif enrollment.status == 'completed' %}bg-blue-100 text-blue-700
+                        {% elif enrollment.status == 'dropped' %}bg-red-100 text-red-700
+                        {% else %}bg-gray-100 text-gray-700{% endif %}">
+                        {{ enrollment.get_status_display }}
+                    </span>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mt-auto">
+                    <a href="{% url 'course_detail' enrollment.course.id %}" 
+                       class="block w-full text-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors">
+                        Ver Curso
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Summary Stats -->
+    <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Resumen</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                <div class="text-3xl font-bold text-blue-600">{{ total_courses }}</div>
+                <div class="text-sm text-gray-600 mt-1">Total Cursos</div>
+            </div>
+            <div class="text-center p-4 bg-green-50 rounded-lg">
+                <div class="text-3xl font-bold text-green-600">{{ active_courses }}</div>
+                <div class="text-sm text-gray-600 mt-1">Cursos Activos</div>
+            </div>
+            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                <div class="text-3xl font-bold text-purple-600">{{ completed_courses }}</div>
+                <div class="text-sm text-gray-600 mt-1">Cursos Completados</div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow-md p-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No tienes cursos inscritos</h3>
+        <p class="mt-1 text-sm text-gray-500">Comienza a explorar nuestros cursos disponibles.</p>
+        <div class="mt-6">
+            <a href="{% url 'home' %}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                Explorar Cursos
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

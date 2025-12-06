@@ -1,0 +1,7 @@
+h2>Bienvenido, {{ request.user.username }}</h2>
+{% if request.user.is_staff %}
+<p>Eres un usuario con rol de staff (admin interno)</p>
+{% else %}
+<p>Eres un usuario normal</p>
+{% endif %}
+<a href="{% url 'logout' %}">Cerrar sesión</a>
